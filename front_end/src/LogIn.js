@@ -13,12 +13,24 @@ const LogIn = ({ setLoggedIn }) => {
             <header className = 'App-header'>
                 {PhTreeLight()}
                 <Form className = 'mb-1'>
-                    <Form.Control type = 'username' placeholder = 'username'/>
+                    <Form.Control type = 'username' placeholder = 'username' id = 'usnFrm'
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            document.getElementById("pwdFrm").focus();
+                        }
+                    }}/>
                 </Form>
                 <Form className = 'mt-1 mb-2'>
-                    <Form.Control type = 'password' placeholder = 'password'/>
+                    <Form.Control type = 'password' id = 'pwdFrm' placeholder = 'password'
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            document.getElementById("loginBtn").focus();
+                        }
+                    }}/>
                 </Form>
-                <Button className = 'mt-2' variant="light" onClick={() => {setLoggedIn(true)}}>
+                <Button id = 'loginBtn' className = 'mt-2' variant="light" onClick={() => {setLoggedIn(true)}}>
                     sign in
                 </Button>
             </header>
