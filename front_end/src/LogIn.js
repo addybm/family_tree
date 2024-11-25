@@ -30,7 +30,7 @@ const LogIn = ({ setLoggedIn }) => {
                         }
                     }}/>
                 </Form>
-                <Button id = 'loginBtn' className = 'mt-2' variant="light" onClick={() => {setLoggedIn(true)}}>
+                <Button id = 'loginBtn' className = 'mt-2' variant="light" onClick={() => {setLoggedIn()}}>
                     sign in
                 </Button>
             </header>
