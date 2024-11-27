@@ -1,0 +1,16 @@
+.TreeSelector-body {
+  background-color: #282c34;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensure the container takes full height */
+  justify-content: space-between; /* Distribute space between elements */
+  color: white;
+}
+
+.TreeSelector-body > div {
+  flex-grow: 1; /* This will make the div stretch to fill remaining space */
+  display: flex;
+  align-items: flex-start;
+  justify-content: start;
+  padding: 20px;
+}
