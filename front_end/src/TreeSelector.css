@@ -1,16 +1,24 @@
 .TreeSelector-body {
   background-color: #282c34;
   display: flex;
+  min-height: 100vh;
   flex-direction: column;
-  min-height: 100vh; /* Ensure the container takes full height */
-  justify-content: space-between; /* Distribute space between elements */
+  justify-content: flex-start; /* Align all items to the top */
   color: white;
 }
 
-.TreeSelector-body > div {
-  flex-grow: 1; /* This will make the div stretch to fill remaining space */
+.TreeSelector-body > div:first-of-type {
+  flex-grow: 0; /* Prevents the 'Your Trees:' div from stretching */
   display: flex;
-  align-items: flex-start;
-  justify-content: start;
+  align-items: center; /* Optional: Center-align text vertically within the div */
+  justify-content: flex-start; /* Align text to the start (left) */
   padding: 20px;
+}
+
+.TreeSelector-body > .row {
+  margin: 0; /* Remove margin between rows if present */
+  display: flex; /* Ensure Row behaves like a flex container */
+  flex-wrap: wrap; /* Allow Cols to wrap within Row */
+  justify-content: flex-start; /* Align Cols to the start of Row */
+  align-items: flex-start; /* Align Cols to the top of Row */
 }
