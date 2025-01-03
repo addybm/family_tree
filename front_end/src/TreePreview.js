@@ -9,7 +9,7 @@ const TreePreview = ({ title, idx }) => {
 
     return (
         <div className = 'TreePreview-body'>
-            <Card>
+            <Card className = 'text-center'>
                 <Card.Body>
                     <div style = {{ 'color' : colorOptions[idx % 6] }}>
                         <span class="clarity--tree-line"></span>

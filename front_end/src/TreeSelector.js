@@ -1,16 +1,16 @@
 import './TreeSelector.css';
 import React, { useState } from 'react';
 import AppBar from './AppBar';
-import { Row, Col } from 'react-bootstrap';
+import { Row, Col, Container } from 'react-bootstrap';
 import TreePreview from './TreePreview';
 
 const TreeSelector = ({ setLoggedIn }) => {
     //array of titles
     // const exampleTreeData = [];
-    const exampleTreeData = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'red']
+    const exampleTreeData = ['Larsen', 'Mannion', 'Mirliani', 'A Very Long Family Name As An Example Here', 'blue', 'purple', 'red']
     return (
         <div className = 'TreeSelector-body'>
-            <AppBar setLoggedIn={setLoggedIn} />
+            <AppBar setLoggedIn = {setLoggedIn} />
             <div>
                 Your Trees:
             </div>
@@ -19,15 +19,15 @@ const TreeSelector = ({ setLoggedIn }) => {
                     <TreePreview pic = {null} title = {null}/>
                 </div>
                 :
-                <div>
-                     <Row>
+                <Container>
+                     <Row className = 'g-4'>
                         {exampleTreeData.map((title, index) => (
-                            <Col key={index} sm={12} md={6} lg={4} xl={3}>
+                            <Col key = {index} sm = {6} md = {5} lg = {4} xl = {2}>
                                 <TreePreview title = {title} idx = {index}/>
                             </Col>
                         ))}
                     </Row>
-                </div>}
+                </Container>}
         </div>
     );
 };
