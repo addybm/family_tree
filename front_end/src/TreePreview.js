@@ -3,12 +3,17 @@ import React, { useState } from 'react';
 import AppBar from './AppBar';
 import { Card, ModalTitle } from 'react-bootstrap';
 
-const TreePreview = ({ pic, title }) => {
+const TreePreview = ({ title, idx }) => {
+
+    const colorOptions = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA']
+
     return (
         <div className = 'TreePreview-body'>
             <Card>
                 <Card.Body>
-                    <Card.Img variant = 'top' src = {pic}/>
+                    <div style = {{ 'color' : colorOptions[idx % 6] }}>
+                        <span class="clarity--tree-line"></span>
+                    </div>
                     <Card.Title>
                         {title}
                     </Card.Title>

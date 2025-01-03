@@ -5,8 +5,9 @@ import { Row, Col } from 'react-bootstrap';
 import TreePreview from './TreePreview';
 
 const TreeSelector = ({ setLoggedIn }) => {
-    //const exampleTreeData = [["pic1", "t1"], ["pic2", "t2"], ["pic3", "t3"], ["pic4", "t4"]];
-    const exampleTreeData = [];
+    //array of titles
+    // const exampleTreeData = [];
+    const exampleTreeData = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'red']
     return (
         <div className = 'TreeSelector-body'>
             <AppBar setLoggedIn={setLoggedIn} />
@@ -20,9 +21,9 @@ const TreeSelector = ({ setLoggedIn }) => {
                 :
                 <div>
                      <Row>
-                        {exampleTreeData.map(([pic, title], index) => (
+                        {exampleTreeData.map((title, index) => (
                             <Col key={index} sm={12} md={6} lg={4} xl={3}>
-                                <TreePreview pic = {pic} title = {title}/>
+                                <TreePreview title = {title} idx = {index}/>
                             </Col>
                         ))}
                     </Row>
