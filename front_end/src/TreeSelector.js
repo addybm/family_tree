@@ -7,7 +7,17 @@ import TreePreview from './TreePreview';
 const TreeSelector = ({ setLoggedIn }) => {
     //array of titles
     // const exampleTreeData = [];
-    const exampleTreeData = ['Larsen', 'Mannion', 'Mirliani', 'A Very Long Family Name As An Example Here', 'blue', 'purple', 'red']
+    const exampleTreeData = ['Larsen', 'Mannion', 'Mirliani', 'A Very Long Family Name As An Example Here', 'blue', 'purple', 'red'];
+
+    //add a create_tree object to the list to map over
+    exampleTreeData.push('');
+
+    const handleCardClick = (index) => {
+        console.log(`Card ${index} clicked!`);
+        console.log("title: " + exampleTreeData[index])
+        // Add your logic here, e.g., navigating to a new page or opening a modal
+    };
+
     return (
         <div className = 'TreeSelector-body'>
             <AppBar setLoggedIn = {setLoggedIn} />
@@ -23,7 +33,7 @@ const TreeSelector = ({ setLoggedIn }) => {
                      <Row className = 'g-4'>
                         {exampleTreeData.map((title, index) => (
                             <Col key = {index} sm = {6} md = {5} lg = {4} xl = {2}>
-                                <TreePreview title = {title} idx = {index}/>
+                                <TreePreview title = {title} idx = {index} handleClick = {handleCardClick}/>
                             </Col>
                         ))}
                     </Row>
