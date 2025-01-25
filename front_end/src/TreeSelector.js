@@ -1,15 +1,26 @@
 import './TreeSelector.css';
 import React, { useState } from 'react';
 import AppBar from './AppBar';
-import { Row, Col } from 'react-bootstrap';
+import { Row, Col, Container } from 'react-bootstrap';
 import TreePreview from './TreePreview';
 
 const TreeSelector = ({ setLoggedIn }) => {
-    //const exampleTreeData = [["pic1", "t1"], ["pic2", "t2"], ["pic3", "t3"], ["pic4", "t4"]];
-    const exampleTreeData = [];
+    //array of titles
+    // const exampleTreeData = [];
+    const exampleTreeData = ['Larsen', 'Mannion', 'Mirliani', 'A Very Long Family Name As An Example Here', 'blue', 'purple', 'red'];
+
+    //add a create_tree object to the list to map over
+    exampleTreeData.push('');
+
+    const handleCardClick = (index) => {
+        console.log(`Card ${index} clicked!`);
+        console.log("title: " + exampleTreeData[index])
+        // Add your logic here, e.g., navigating to a new page or opening a modal
+    };
+
     return (
         <div className = 'TreeSelector-body'>
-            <AppBar setLoggedIn={setLoggedIn} />
+            <AppBar setLoggedIn = {setLoggedIn} />
             <div>
                 Your Trees:
             </div>
@@ -18,15 +29,15 @@ const TreeSelector = ({ setLoggedIn }) => {
                     <TreePreview pic = {null} title = {null}/>
                 </div>
                 :
-                <div>
-                     <Row>
-                        {exampleTreeData.map(([pic, title], index) => (
-                            <Col key={index} sm={12} md={6} lg={4} xl={3}>
-                                <TreePreview pic = {pic} title = {title}/>
+                <Container>
+                     <Row className = 'g-4'>
+                        {exampleTreeData.map((title, index) => (
+                            <Col key = {index} sm = {6} md = {5} lg = {4} xl = {2}>
+                                <TreePreview title = {title} idx = {index} handleClick = {handleCardClick}/>
                             </Col>
                         ))}
                     </Row>
-                </div>}
+                </Container>}
         </div>
     );
 };
