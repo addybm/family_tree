@@ -4,7 +4,7 @@ import AppBar from './AppBar';
 import { Row, Col, Container } from 'react-bootstrap';
 import TreePreview from './TreePreview';
 
-const TreeSelector = ({ setLoggedIn }) => {
+const TreeSelector = ({ setLoggedIn, setTreeBuilder, setTreeTitle }) => {
     //array of titles
     // const exampleTreeData = [];
     const exampleTreeData = ['Larsen', 'Mannion', 'Mirliani', 'A Very Long Family Name As An Example Here', 'blue', 'purple', 'red'];
@@ -14,8 +14,10 @@ const TreeSelector = ({ setLoggedIn }) => {
 
     const handleCardClick = (index) => {
         console.log(`Card ${index} clicked!`);
-        console.log("title: " + exampleTreeData[index])
-        // Add your logic here, e.g., navigating to a new page or opening a modal
+        console.log("title: " + exampleTreeData[index]);
+        setTreeBuilder(true);
+        setTreeTitle(exampleTreeData[index]);
+        console.log("setTreeBuilder to true?");
     };
 
     return (
