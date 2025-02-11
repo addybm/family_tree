@@ -13,11 +13,8 @@ const TreeSelector = ({ setLoggedIn, setTreeBuilder, setTreeTitle }) => {
     exampleTreeData.push('');
 
     const handleCardClick = (index) => {
-        console.log(`Card ${index} clicked!`);
-        console.log("title: " + exampleTreeData[index]);
         setTreeBuilder(true);
         setTreeTitle(exampleTreeData[index]);
-        console.log("setTreeBuilder to true?");
     };
 
     return (

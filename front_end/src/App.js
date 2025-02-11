@@ -32,7 +32,11 @@ function App() {
                              setTreeBuilder = {(treeBuilder) => {
                                 localStorage.setItem('treeBuilder', treeBuilder);
                                 setTreeBuilder(treeBuilder);
-                             }}/>
+                             }}
+                             setLoggedIn = {() => {
+                                localStorage.setItem('loggedIn', false);
+                                setLoggedIn(false);
+                            }}/>
                 :
                 <TreeSelector setLoggedIn = {() => {
                         localStorage.setItem('loggedIn', false);
