@@ -2,16 +2,11 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import atexit
 from neo4j_service import Neo4jService
+# from neo4j_service import get_users
 
 app = Flask(__name__)
 CORS(app)  # Allow cross-origin requests (for React)
 neo_service = Neo4jService()
-
-# NEO4J_URI = os.getenv("NEO4J_URI")
-# NEO4J_USERNAME = os.getenv("NEO4J_USER")
-# NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-# AURA_INSTANCEID=ccede0e5
-# AURA_INSTANCENAME=Instance01
 
 # driver = GraphDatabase.driver(NEO4J_URI, auth = (NEO4J_USERNAME, NEO4J_PASSWORD))
 
@@ -36,12 +31,11 @@ neo_service = Neo4jService()
 
 
 
-# @app.route('/people', methods=['GET'])
-# def people():
-#     return jsonify({"people": get_people()})
-
-# if __name__ == '__main__':
-#     app.run(debug = True, port = 5002)
+@app.route('/people', methods=['GET'])
+def people():
+    # return jsonify({"people": get_people()})
+    users = neo_service.get_users()
+    return jsonify({'users' : users})
 
 
 @app.route('/api/register', methods=['POST'])
@@ -52,21 +46,24 @@ def register():
     
     if username and password:
         result = neo_service.create_user(username, password)
-        return jsonify({"message": "User created successfully", "user": result["u"]["username"]}), 201
+        return jsonify({"message": "User registered successfully", "user": result}), 201
     else:
         return jsonify({"message": "Username and password required"}), 400
 
-@app.route('/api/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
+# @app.route('/api/login', methods=['POST'])
+# def login():
+#     data = request.get_json()
+#     username = data.get("username")
+#     password = data.get("password")
     
-    if username and password:
-        is_valid = neo_service.validate_user(username, password)
-        if is_valid:
-            return jsonify({"message": "Login successful"}), 200
-        else:
-            return jsonify({"message": "Invalid username or password"}), 401
-    else:
-        return jsonify({"message": "Username and password required"}), 400
+#     if username and password:
+#         is_valid = neo_service.validate_user(username, password)
+#         if is_valid:
+#             return jsonify({"message": "Login successful"}), 200
+#         else:
+#             return jsonify({"message": "Invalid username or password"}), 401
+#     else:
+#         return jsonify({"message": "Username and password required"}), 400
+
+if __name__ == '__main__':
+    app.run(debug = True, port = 5002)
