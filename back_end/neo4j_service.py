@@ -28,7 +28,19 @@ class Neo4jService:
     def create_user(self, username, password):
         # hash the password
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+        # Check if the username already exists
+        check_query = """
+        MATCH (u:User {username: $username})
+        RETURN u
+        """
+
+        with self.driver.session() as session:
+            existing_user = session.run(check_query, username = username).single()
+            if existing_user:
+                return None
         
+        # todo: only create a user if the username doesn't already exist
         # create the user node in Neo4j
         query = """
         CREATE (u:User {username: $username, password: $password})
@@ -36,10 +48,37 @@ class Neo4jService:
         """
 
         with self.driver.session() as session:
-            result = session.run(query, username = username, password = hashed_password.decode('utf-8'))
-            record = result.single()
-            # print("RETURNING: " + record["username"])
+            record = session.run(query, username = username, password = hashed_password.decode('utf-8')).single()
             return record["username"] if record else None
+        
+    # returns the number of accounts deleted
+    def remove_user(self, username, password):
+        query = """
+        MATCH (u:User {username: $username})
+        RETURN u.password AS password
+        """
+    
+        with self.driver.session() as session:
+            record = session.run(query, username = username).single()
+            if not record:
+                return 0
+
+            stored_hashed_password = record["password"]
+
+        # check password
+        if not bcrypt.checkpw(password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
+            return 0
+
+        # delete the user if the password is correct
+        delete_query = """
+        MATCH (u:User {username: $username})
+        DELETE u
+        RETURN COUNT(u) AS deletedCount
+        """
+        
+        with self.driver.session() as session:
+            record = session.run(delete_query, username = username).single()
+            return record["deletedCount"] if record else 0
 
 
 # class Neo4jService:

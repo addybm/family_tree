@@ -31,24 +31,42 @@ neo_service = Neo4jService()
 
 
 
-@app.route('/people', methods=['GET'])
+@app.route('/people', methods = ['GET'])
 def people():
-    # return jsonify({"people": get_people()})
     users = neo_service.get_users()
     return jsonify({'users' : users})
 
 
-@app.route('/api/register', methods=['POST'])
-def register():
+@app.route('/api/register', methods = ['POST'])
+def register_user():
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
     
     if username and password:
         result = neo_service.create_user(username, password)
-        return jsonify({"message": "User registered successfully", "user": result}), 201
+        if result:
+            return jsonify({"message": "User registered successfully", "user": result}), 201
+        else:
+            return jsonify({"message": "User not registered successfully", "user": result}), 409
     else:
         return jsonify({"message": "Username and password required"}), 400
+    
+@app.route('/api/remove', methods = ["POST"])
+def remove_user():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if username and password:
+        result = neo_service.remove_user(username, password)
+        # if we deleted 1 or more accounts successfully
+        if result > 0:
+            return jsonify({"message": "User removed successfully", "user": result}), 200
+        else:
+            return jsonify({"message": "User not removed"}), 404
+    else:
+        return jsonify({"message": "Existing username and password required"}), 400
 
 # @app.route('/api/login', methods=['POST'])
 # def login():

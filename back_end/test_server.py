@@ -7,13 +7,63 @@ def client():
     client = app.test_client()
     yield client
 
-def test_register_success(client):
-    response = client.post('/api/register', json={
-        "username": "testuserNEW",
-        "password": "testpasswordNEW"
+def test_register_user(client):
+    response = client.post('/api/register', json = {
+        "username": "testuser",
+        "password": "testpassword"
     })
     assert response.status_code == 201
     assert response.get_json()["message"] == "User registered successfully"
+
+def test_remove_user(client):
+    response = client.post('/api/remove', json = {
+        "username": "testuser",
+        "password": "testpassword"
+    })
+    assert response.status_code == 200
+    assert response.get_json()["message"] == "User removed successfully"
+
+# try adding the same user twice, then remove the user
+def test_register_duplicate(client):
+    response_first = client.post('/api/register', json = {
+        "username": "testuser",
+        "password": "testpassword"
+    })
+    assert response_first.status_code == 201
+    assert response_first.get_json()["message"] == "User registered successfully"
+    response_second = client.post('/api/register', json = {
+        "username": "testuser",
+        "password": "testpassword"
+    })
+    assert response_second.status_code == 409
+    assert response_second.get_json()["message"] == "User not registered successfully"
+    response_third = client.post('/api/remove', json = {
+        "username": "testuser",
+        "password": "testpassword"
+    })
+    assert response_third.status_code == 200
+    assert response_third.get_json()["message"] == "User removed successfully"
+
+def test_remove_wrong_password(client):
+    response_first = client.post('/api/register', json = {
+    "username": "testuser",
+    "password": "testpassword"
+    })
+    assert response_first.status_code == 201
+    assert response_first.get_json()["message"] == "User registered successfully"
+    response_second = client.post('/api/remove', json = {
+        "username": "testuser",
+        "password": "testpasswordWRONG"
+    })
+    assert response_second.status_code == 404
+    assert response_second.get_json()["message"] == "User not removed"
+    response_third = client.post('/api/remove', json = {
+        "username": "testuser",
+        "password": "testpassword"
+    })
+    assert response_third.status_code == 200
+    assert response_third.get_json()["message"] == "User removed successfully"
+
 
 # def test_register_missing_fields(client):
 #     response = client.post('/api/register', json={"username": "testuser"})
