@@ -25,51 +25,51 @@ function App() {
         }
     })
 
-    // testing flask connection:
-    const [flaskMessage, setFlaskMessage] = useState("");
+    // // testing flask connection:
+    // const [flaskMessage, setFlaskMessage] = useState("");
 
-    useEffect(() => {
-        fetch("http://localhost:5002/data")
-            .then(response => response.json())
-            .then(data => {
-                setFlaskMessage(data.message)
-                console.log("data fetched: " + data.message)
-            });
-    }, []);
+    // useEffect(() => {
+    //     fetch("http://localhost:5002/data")
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             setFlaskMessage(data.message)
+    //             console.log("data fetched: " + data.message)
+    //         });
+    // }, []);
 
     return (
-        <div className="App">
-            {flaskMessage}
-        </div>
-        // loggedIn ? 
-        //     treeBuilder ?
-        //         <TreeBuilder treeTitle = {treeTitle}
-        //                      setTreeBuilder = {(treeBuilder) => {
-        //                         localStorage.setItem('treeBuilder', treeBuilder);
-        //                         setTreeBuilder(treeBuilder);
-        //                      }}
-        //                      setLoggedIn = {() => {
-        //                 localStorage.setItem('loggedIn', false);
-        //                 setLoggedIn(false);
-        //             }}/>
-        //         :
-        //         <TreeSelector setLoggedIn = {() => {
-        //                 localStorage.setItem('loggedIn', false);
-        //                 setLoggedIn(false);
-        //             }}
-        //             setTreeBuilder = {(treeBuilder) => {
-        //                 localStorage.setItem('treeBuilder', treeBuilder);
-        //                 setTreeBuilder(treeBuilder);
-        //             }}
-        //             setTreeTitle = {(treeTitle) => {
-        //                 localStorage.setItem('treeTitle', treeTitle);
-        //                 setTreeTitle(treeTitle);
-        //             }}/>
-        // :
-        // <LogIn setLoggedIn = {() => {
-        //     localStorage.setItem('loggedIn', true)
-        //     setLoggedIn(true);
-        // }} />
+        // <div className="App">
+        //     {flaskMessage}
+        // </div>
+        loggedIn ? 
+            treeBuilder ?
+                <TreeBuilder treeTitle = {treeTitle}
+                             setTreeBuilder = {(treeBuilder) => {
+                                localStorage.setItem('treeBuilder', treeBuilder);
+                                setTreeBuilder(treeBuilder);
+                             }}
+                             setLoggedIn = {() => {
+                        localStorage.setItem('loggedIn', false);
+                        setLoggedIn(false);
+                    }}/>
+                :
+                <TreeSelector setLoggedIn = {() => {
+                        localStorage.setItem('loggedIn', false);
+                        setLoggedIn(false);
+                    }}
+                    setTreeBuilder = {(treeBuilder) => {
+                        localStorage.setItem('treeBuilder', treeBuilder);
+                        setTreeBuilder(treeBuilder);
+                    }}
+                    setTreeTitle = {(treeTitle) => {
+                        localStorage.setItem('treeTitle', treeTitle);
+                        setTreeTitle(treeTitle);
+                    }}/>
+        :
+        <LogIn setLoggedIn = {() => {
+            localStorage.setItem('loggedIn', true)
+            setLoggedIn(true);
+        }} />
     );
 }
 
