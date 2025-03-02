@@ -1,19 +1,19 @@
-import './Login.css';
+import './CreateNewAccount.css';
 import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-const LogIn = ({ setLoggedIn, setNewAccountPage }) => {
+const CreateNewAccount = ({ setLoggedIn, setNewAccountPage }) => {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
-    const handleLogin = async (event) => {
+    const handleNewAccount = async (event) => {
         // stop page from reloading
         event.preventDefault();
         
         try {
-            const response = await fetch("http://localhost:5002/api/login", {
+            const response = await fetch("http://localhost:5002/api/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -25,18 +25,20 @@ const LogIn = ({ setLoggedIn, setNewAccountPage }) => {
             const status_code = response.status;
 
             if (response.ok) {
-                // successful login
-                if (data.message === "User credentials valid") {
+                // successful creation
+                if (data.message === "User registered successfully") {
                     setLoggedIn()
+                    setNewAccountPage()
                 }
             } else {
                 // invalid login
-                console.error("Error logging in:", data.message)
-                alert(data.message + " (response " + status_code + ")")
+                console.error("Error creating new account:", data.message)
+                alert(data.message + " (response " + ((status_code == 409)
+                    ? "\"username already in use\"" : status_code) + ")")
             }
         } catch (error) {
-            console.error("Error logging in:", error);
-            alert("Login failed. Please try again.");
+            console.error("Error creating new account:", error);
+            alert("Account creation failed. Please try again.");
         }
     };
 
@@ -68,16 +70,17 @@ const LogIn = ({ setLoggedIn, setNewAccountPage }) => {
                         setPassword(e.target.value)
                     }}/>
                 </Form>
-                <Button id = 'loginBtn' className = 'mt-2' variant="light" onClick={handleLogin} style = {{width : '200px'}}>
-                    sign in
+                <Button id = 'newAcctBtn' className = 'mt-2' variant = "light" onClick={handleNewAccount} 
+                    style = {{width : '200px'}}>
+                    create account
                 </Button>
-                <Button id = 'newAcctBtn' className = 'mt-2' variant="light" onClick={() => {setNewAccountPage()}} style = {{width : '200px'}}>
-                    create new account
+                <Button id = 'newAcctBtn' className = 'mt-2' onClick={() => {setNewAccountPage()}}
+                    style = {{width : '200px', background : '#282c34', border : '#282c34'}}>
+                    cancel
                 </Button>
             </header>
     </div>
     );
 };
 
-export default LogIn;
-
+export default CreateNewAccount;
