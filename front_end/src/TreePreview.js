@@ -14,7 +14,7 @@ const TreePreview = ({ title, idx, handleClick }) => {
             onClick = {() => handleClick(idx)}>
                 <Card.Body>
                     <div style = {{ 'color' : title == '' ? 'black' : colorOptions[idx % 6]}}>
-                        <span class="clarity--tree-line"></span>
+                        <span className="clarity--tree-line"></span>
                     </div>
                     {title == '' ? 
                         <Card.Title style={{textOverflow : 'ellipsis', overflow : 'hidden', whiteSpace : 'nowrap'}}>
