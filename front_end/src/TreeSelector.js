@@ -115,8 +115,8 @@ const TreeSelector = ({ setLoggedIn, setTreeBuilder, setTreeTitle, getUsername }
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick = {() => setShowModal(false)}>Cancel</Button>
-                    <Button onClick = {handleCreateTree}>Create</Button>
+                    <Button variant = "secondary" onClick = {() => setShowModal(false)}>Cancel</Button>
+                    <Button variant = "primary" onClick = {handleCreateTree}>Create</Button>
                 </Modal.Footer>
             </Modal>
 

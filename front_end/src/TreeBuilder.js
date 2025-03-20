@@ -48,32 +48,34 @@ const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) =>
                     </Modal.Header>
                     <Modal.Body>Are you sure you want to delete "{treeTitle}" and all of its data? This is irreversible.</Modal.Body>
                     <Modal.Footer>
-                        <Button variant="secondary" onClick = {() => {setShowDeleteModal(false)}}>
+                        <Button variant = "secondary" onClick = {() => {setShowDeleteModal(false)}}>
                             Cancel
                         </Button>
-                        <Button variant="primary" onClick = {handleDeleteTree} style = {{backgroundColor : "red", borderColor : "red"}}>
+                        <Button variant = "primary" onClick = {handleDeleteTree} style = {{backgroundColor : "red", borderColor : "red"}}>
                             Delete Tree
                         </Button>
                     </Modal.Footer>
             </Modal>
-            <AppBar setLoggedIn = {setLoggedIn} />
+            <AppBar setLoggedIn = {setLoggedIn}
+                    showTreeBuilder = {true}
+                    setShowTreeBuilder = {setTreeBuilder}
+                    handleDeleteTree = {() => {setShowDeleteModal(true)}}/>
             <p>
                 {treeTitle}
             </p>
-            <Button onClick = {() => setTreeBuilder(false)}>
+            {/* <Button onClick = {() => setTreeBuilder(false)}>
                 Back
-            </Button>
+            </Button> */}
             <Button
                 style = {{backgroundColor : '#d1dffc', borderColor : '#d1dffc', color : "black"}}
                 onClick = {() => {console.log("Add")}}
                 className = 'rounded-circle mx-1'>
                 +
             </Button>
-            <Button onClick = {() => {setShowDeleteModal(true)}}>
+            {/* <Button onClick = {() => {setShowDeleteModal(true)}}>
                 Delete tree
-            </Button>
+            </Button> */}
         </React.Fragment>
-       
     );
 };
 
