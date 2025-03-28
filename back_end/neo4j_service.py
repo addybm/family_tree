@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import bcrypt
 import json
 import datetime
+from Person import Person
 
 class Neo4jService:
 
@@ -26,6 +27,14 @@ class Neo4jService:
             NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD)
         )
 
+    # Purpose    : sends query to database
+    # Parameters : query (string) - the query to be sent to the database
+    # Returns    : a list of records returned by the query
+    def send_query(self, query):
+        with self.driver.session() as session:
+            result = session.run(query)
+            return [record for record in result]
+
     # Purpose    : retrieves all usernames from neo4j instance
     # Parameters : none
     # Returns    : list of all usernames (strings)
@@ -41,6 +50,14 @@ class Neo4jService:
         with self.driver.session() as session:
             result = session.run("MATCH (t:Tree) RETURN t.name AS tree_name")
             return [record["tree_name"] for record in result]
+        
+    # Purpose    : returns all people in database
+    # Parameters : none
+    # Returns    : list of all people names (string)
+    def get_people_list(self):
+        with self.driver.session() as session:
+            result = session.run("MATCH (p:Person) RETURN p.name AS person_name")
+            return [record["person_name"] for record in result]
     
     # Purpose    : add a user to the neo4j instance
     # Parameters : username (string) - username of user to be added
@@ -98,8 +115,9 @@ class Neo4jService:
         # delete the user if the password is correct
         delete_query = """
         MATCH (u:User {username: $username}) 
-        OPTIONAL MATCH (u)-[:HAS_TREE]->(t:Tree) 
-        DETACH DELETE t, u 
+        OPTIONAL MATCH (u)-[:HAS_TREE]->(t:Tree)
+        OPTIONAL MATCH (t)-[:HAS_PERSON]->(p:Person)
+        DETACH DELETE p, t, u 
         RETURN COUNT(u) AS deleted_count
         """
         
@@ -248,15 +266,14 @@ class Neo4jService:
         # add tree connected to user
         remove_tree_query = """
         MATCH (u:User {username: $username})-[:HAS_TREE]->(t:Tree {name: $tree_name})
-        DETACH DELETE t
-        RETURN Count(t) AS deleted_trees
+        OPTIONAL MATCH (t)-[r:HAS_PERSON]->(p:Person)
+        DETACH DELETE p, t
+        RETURN COUNT(t) AS deleted_trees
         """
 
         with self.driver.session() as session:
             record = session.run(remove_tree_query, username = username,
                                   tree_name = tree_name).single()
-            print("COUNT")
-            print(record["deleted_trees"])
             return json.dumps({"deleted_trees" : record["deleted_trees"] if record
                                 else 0, "status_code" : 200 if (record["deleted_trees"] > 0)
                                 else 500})
@@ -282,4 +299,125 @@ class Neo4jService:
                                record["last_opened"].strftime("%Y-%m-%d %H:%M:%S") 
                                if record else None, "status_code" : 200 if record
                                 else 500})
+    
+    # Purpose    : add the first person to a tree and set them as the focus
+    # Parameters : username (string)  - username of user whose tree it is
+    #              person (Person)   - the person to be added
+    #              tree_name (string) - name of the tree to be updated
+    # Returns    : a json string with the name of the person added (or None
+    #              if failed) and the associated HTTP response status code
+    #              (format: {"person_name" : "John Doe", "status_code" : 200})
+    def add_person(self, username, person, tree_name):
+        query = """
+        MATCH (u:User {username: $username})-[r:HAS_TREE]->(t:Tree {name: $tree_name})
+        CREATE (p:Person {name: $name, gender: $gender, nickname: $nickname, notes: $notes})
+        CREATE (t)-[:HAS_PERSON]->(p)
+        CREATE (t)-[:IN_FOCUS]->(p)
+        RETURN p.name AS person_name
+        """
+
+        with self.driver.session() as session:
+            record = session.run(query, username = username,
+                                 tree_name = tree_name, name = person["name"],
+                                   gender = person["gender"],
+                                     nickname = person["nickname"],
+                                       notes = person["notes"]).single()
+            return json.dumps({"person_name" : record["person_name"] if record
+                                else None, "status_code" : 200 if record
+                                else 500})
+        
+    
+    # Purpose    : gets the in_focus person of a tree
+    # Parameters : username (string)  - username of user whose tree it is
+    #              tree_name (string) - name of the tree to be checked
+    # Returns    : a json string with the JSON-version of the person object
+    #              in focus (or None if no person) and the associated HTTP 
+    #              response status code
+    #              ({"person": {"name" : "person", "gender" : "male", 
+    #                "nickname" : "nick", "notes" : "notes"}}, 200)
+    def get_focus(self, username, tree_name):
+        query = """
+        MATCH (u:User {username: $username})-[r:HAS_TREE]->(t:Tree {name: $tree_name})
+        OPTIONAL MATCH (t)-[:IN_FOCUS]->(p:Person)
+        RETURN p.name AS person_name, p.gender AS person_gender, p.nickname AS person_nickname, p.notes AS person_notes
+        """
+
+        with self.driver.session() as session:
+            record = session.run(query, username = username, tree_name = tree_name).single()
+            if record["person_name"] and record["person_gender"] and record["person_nickname"] and record["person_notes"]:
+                person = Person(record["person_name"], record["person_gender"],
+                                 record["person_nickname"], record["person_notes"])
+                return json.dumps({"person" : person.__dict__, "status_code" : 200})
+            else:
+                return json.dumps({"person" : None, "status_code" : 200})
+
+    # Purpose    : set the focus of a tree to a specific person
+    # Parameters : username (string)  - username of user whose tree it is
+    #              tree_name (string) - name of the tree to be updated
+    #              person_name (string) - name of the person to be set as focus
+    # Returns    : a json string with the name of the person set as focus (or None
+    #              if failed) and the associated HTTP response status code
+    #              (format: {"person_name" : "John Doe", "status_code" : 200})
+    # def set_focus(self, username, tree_name, person_name):
+    #     query = """
+    #     MATCH (u:User {username: $username})-[r:HAS_TREE]->(t:Tree {name: $tree_name})
+    #     MATCH (p:Person {name: $person_name})
+    #     MERGE (t)-[:IN_FOCUS]->(p)
+    #     RETURN p.name AS person_name
+    #     """
+
+    #     with self.driver.session() as session:
+    #         record = session.run(query, username = username, tree_name = tree_name,
+    #                              person_name = person_name).single()
+    #         return json.dumps({"person_name" : record["person_name"] if record
+    #                             else None, "status_code" : 200 if record
+    #                             else 500})
+
+
+    # Purpose    : delete the person who is in focus
+    # Parameters : username (string)  - username of user whose tree it is
+    #              tree_name (string) - name of the tree to be updated
+    # Returns    : a json string with the number of people deleted (or None if
+    #              failed) and the associated HTTP response status code
+    #              (format: {"deleted_count" : 1, "status_code" : 200})
+    def delete_person(self, username, tree_name):
+        query = """
+        MATCH (u:User {username: $username}) -[:HAS_TREE]-> (t:Tree {name: $tree_name})
+        MATCH (t)-[:IN_FOCUS]->(p:Person)
+        DETACH DELETE p
+        RETURN COUNT(p) AS deleted_count
+        """
+
+        with self.driver.session() as session:
+            record = session.run(query, username = username, tree_name = tree_name).single()
+            return json.dumps({"deleted_count" : record["deleted_count"] if record
+                                else None, "status_code" : 200 if record
+                                else 500})
+        
+    # Purpose    : adds a parent to the in-focus person in the tree
+    # Parameters : username (string)  - username of user whose tree it is
+    #              tree_name (string) - name of tree to be modified
+    #              parent (dict)      - dictionary matching the Person class
+    #              definition
+    def add_parent(self, username, tree_name, parent):
+        query = """
+        MATCH (u:User {username: $username}) -[:HAS_TREE]-> (t:Tree {name: $tree_name})
+        MATCH (t)-[:IN_FOCUS]->(child:Person)
+        CREATE (parent:Person {name: $name, gender: $gender, nickname: $nickname, notes: $notes})
+        CREATE (child)-[:HAS_PARENT]->(parent)
+        CREATE (parent)-[:HAS_CHILD]->(child)
+        RETURN parent.name AS parent_name
+        """
+
+        with self.driver.session() as session:
+            record = session.run(query, username = username,
+                                  tree_name = tree_name,
+                                    name = parent["name"],
+                                      gender = parent["gender"],
+                                        nickname = parent["nickname"],
+                                          notes = parent["notes"]).single()
+            return json.dumps({"parent_name" : record["parent_name"] if record
+                                else None, "status_code" : 200 if record
+                                else 500})
+
 
