@@ -25,12 +25,21 @@ function App() {
         } else {
             return "";
         }
-    })
+    });
 
     const [newAccountPage, setNewAccountPage] = useState(() => {
         const newAccountPage = localStorage.getItem('newAccountPage') === "true";
         return newAccountPage;
-    })
+    });
+
+    const [username, setUsername] = useState(() => {
+        const username = localStorage.getItem('username');
+        if (username != null) {
+            return username;
+        } else {
+            return "";
+        }
+    });
 
     return (
         loggedIn ? 
@@ -41,9 +50,12 @@ function App() {
                                 setTreeBuilder(treeBuilder);
                              }}
                              setLoggedIn = {() => {
-                        localStorage.setItem('loggedIn', false);
-                        setLoggedIn(false);
-                    }}/>
+                                localStorage.setItem('loggedIn', false);
+                                setLoggedIn(false);
+                            }}
+                            getUsername = {() => {
+                                return username;
+                            }}/>
                 :
                 <TreeSelector setLoggedIn = {() => {
                         localStorage.setItem('loggedIn', false);
@@ -56,6 +68,9 @@ function App() {
                     setTreeTitle = {(treeTitle) => {
                         localStorage.setItem('treeTitle', treeTitle);
                         setTreeTitle(treeTitle);
+                    }}
+                    getUsername = {() => {
+                        return username;
                     }}/>
         :
         newAccountPage ?
@@ -76,7 +91,11 @@ function App() {
                 setNewAccountPage = {() => {
                     localStorage.setItem('newAccountPage', true);
                     setNewAccountPage(true);
-            }}/>
+                }}
+                setUsername = {(username) => {
+                    localStorage.setItem('username', username);
+                    setUsername(username);
+                }}/>
     );
 }
 

@@ -3,14 +3,15 @@ import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-const LogIn = ({ setLoggedIn, setNewAccountPage }) => {
+const LogIn = ({ setLoggedIn, setNewAccountPage, setUsername }) => {
 
-    const [username, setUsername] = useState("");
+    // const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
     const handleLogin = async (event) => {
         // stop page from reloading
         event.preventDefault();
+        let username = localStorage.getItem('username')
         
         try {
             const response = await fetch("http://localhost:5002/api/login", {
@@ -43,7 +44,7 @@ const LogIn = ({ setLoggedIn, setNewAccountPage }) => {
     return (
         <div className = 'App'>
             <header className = 'App-header'>
-                <span class="clarity--tree-line-large"></span>
+                <span className="clarity--tree-line-large"></span>
                 <Form className = 'mb-1'>
                     <Form.Control type = 'username' placeholder = 'username' id = 'usnFrm'
                     onKeyDown={(e) => {
