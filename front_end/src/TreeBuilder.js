@@ -1,6 +1,6 @@
 import './TreeBuilder.css';
 import React, { useState } from 'react';
-import { Button } from 'react-bootstrap';
+import { Button, Card } from 'react-bootstrap';
 import AppBar from './AppBar';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
@@ -8,9 +8,32 @@ import Form from 'react-bootstrap/Form';
 const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) => {
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showAddPersonModal, setShowAddPersonModal] = useState(false);
+    const [newPersonName, setNewPersonName] = useState('');
+    const [newPersonGender, setNewPersonGender] = useState('');
+    const [newPersonNickname, setNewPersonNickname] = useState('');
+    const [newPersonNotes, setNewPersonNotes] = useState('');
+
+    const handleAddPersonClick = () => {
+        //display an editing view for a Person
+        console.log("Add Person");
+        setShowAddPersonModal(true);
+    }
 
     const handleAddPerson = () => {
-        // display an editing view for a Person
+        //check that a name and gender are chosen
+        if (newPersonName == "" || newPersonGender == "") {
+            alert("Error: name and gender are required");
+            return;
+        }
+    }
+
+    const handleAddPersonModalClose = () => {
+        setShowAddPersonModal(false);
+        setNewPersonName('');
+        setNewPersonGender('');
+        setNewPersonNickname('');
+        setNewPersonNotes('');
     }
 
     const handleDeleteTree = () => {
@@ -56,25 +79,51 @@ const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) =>
                         </Button>
                     </Modal.Footer>
             </Modal>
+            <Modal show = {showAddPersonModal} onHide = {handleAddPersonModalClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add Person</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form className = 'my-3'>
+                            <Form.Control type = "text" placeholder = "Name"
+                            onChange = {(e) => {setNewPersonName(e.target.value)}}/>
+                        </Form>
+                        <Form.Select value={newPersonGender} 
+                            onChange={(e) => setNewPersonGender(e.target.value)}>
+                            <option value="">Choose...</option>
+                            <option value="option1">Female</option>
+                            <option value="option2">Male</option>
+                        </Form.Select>
+                        <Form className = 'my-3'>
+                            <Form.Control type = "text" placeholder = "Nickname"
+                            onChange = {(e) => {setNewPersonNickname(e.target.value)}}/>
+                        </Form>
+                        <Form className = 'my-3'>
+                            <Form.Control as = "textarea" placeholder = "Notes"
+                            onChange = {(e) => {setNewPersonNotes(e.target.value)}}
+                            style = {{height : '100px', justifyContent : 'flex-start'}}/>
+                        </Form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant = "secondary" onClick = {handleAddPersonModalClose}>
+                            Cancel
+                        </Button>
+                        <Button variant = "primary" onClick = {handleAddPerson}>
+                            Add Person
+                        </Button>
+                    </Modal.Footer>
+            </Modal>
             <AppBar setLoggedIn = {setLoggedIn}
                     showTreeBuilder = {true}
                     setShowTreeBuilder = {setTreeBuilder}
                     handleDeleteTree = {() => {setShowDeleteModal(true)}}/>
-            <p>
+            <p className = 'ms-3 mt-3 treeTitle'>
                 {treeTitle}
             </p>
-            {/* <Button onClick = {() => setTreeBuilder(false)}>
-                Back
-            </Button> */}
-            <Button
-                style = {{backgroundColor : '#d1dffc', borderColor : '#d1dffc', color : "black"}}
-                onClick = {() => {console.log("Add")}}
-                className = 'rounded-circle mx-1'>
-                +
-            </Button>
-            {/* <Button onClick = {() => {setShowDeleteModal(true)}}>
-                Delete tree
-            </Button> */}
+            <div className = 'm-3 node node-woman node-infocus' 
+                onClick={handleAddPersonClick}>
+                Add Person
+            </div>
         </React.Fragment>
     );
 };

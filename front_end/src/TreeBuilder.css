@@ -1,0 +1,64 @@
+.treeTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.node {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 150px;
+    padding: 0;
+    border: black 1px solid;
+    aspect-ratio: 1;
+}
+
+
+.node-man {
+    border-radius: 0%;
+}
+
+.node-woman {
+    border-radius: 50%;
+}
+
+.node-infocus {
+    border: 5px solid plum;
+}
+
+.node:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* nonbinary: look into using box-shadow for border? idk how to rotate text */
+/* .node-nonbinary {
+    border-radius: 0%;
+    transform: rotate(45deg);
+} */
+
+/* .node-nonbinary {
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    position: relative;
+    z-index: 1;
+} */
+
+/* .node-nonbinary::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background-color: black;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    z-index: -1 !important;
+} */
+
+
