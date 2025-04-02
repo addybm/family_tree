@@ -14,13 +14,11 @@
     border: black 1px solid;
     aspect-ratio: 1;
 }
-
-
-.node-man {
+.node-male {
     border-radius: 0%;
 }
 
-.node-woman {
+.node-female {
     border-radius: 50%;
 }
 
@@ -31,6 +29,13 @@
 .node:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tree-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
 }
 
 /* nonbinary: look into using box-shadow for border? idk how to rotate text */
