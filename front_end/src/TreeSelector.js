@@ -121,7 +121,10 @@ const TreeSelector = ({ setLoggedIn, setTreeBuilder, setTreeTitle, getUsername }
             </Modal>
 
             <div className = 'TreeSelector-body'>
-                <AppBar setLoggedIn = {setLoggedIn} />
+                <AppBar setLoggedIn = {setLoggedIn} 
+                    showTreeBuilder = {false}
+                    setShowTreeBuilder = {()=> {}}
+                    handleDeleteTree = {() => {}}/>
                 <div>
                     Your Trees:
                 </div>
