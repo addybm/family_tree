@@ -275,12 +275,14 @@ const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) =>
     return (
         showAddRelationship ?
             <AddRelationship setShowAddRelationship = {() => {
-                localStorage.setItem("showAddRelationship","false");
+                localStorage.setItem("showAddRelationship", "false");
                 setShowAddRelationship(false);
             }}
             setShowModifyNodeModal = {() => {
                 setShowModifyNodeModal(false);
-            }}/> : 
+            }}
+            person = {{ name: currPersonName, gender: currPersonGender,
+                 nickname: currPersonNickname, notes: currPersonNotes, id: currPersonID}}/> : 
             <React.Fragment>
                 <Modal show = {showDeleteModal} onHide = {() => {setShowDeleteModal(false)}}>
                     <Modal.Header closeButton>
@@ -352,7 +354,7 @@ const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) =>
                         </Button>
                         <Button onClick={() => {
                             setShowAddRelationship(true);
-                            localStorage.setItem("showAddRelationship", "true")
+                            localStorage.setItem("showAddRelationship", "true");
                             }} style = {{ backgroundColor: "steelblue", borderColor: "steelblue" }}>
                             Add Relationship
                         </Button>
@@ -407,7 +409,7 @@ const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) =>
                             <option value = "">Choose...</option>
                             <option value = "female">Female</option>
                             <option value = "male">Male</option>
-                        </Form.Select>
+                        </Form.Select> 
                         <Form className = 'my-3'>
                             <Form.Control type = "text" placeholder = "Nickname"
                             value = {currPersonNickname}
