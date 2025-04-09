@@ -40,118 +40,192 @@ const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) =>
         ['C', 'D']
     ];
 
+    const divorces = [
+        ['D', 'EX']
+    ];
+
     const children = [
         ['A','B','D','E','F'],
-        ['C','D','G']
+        ['C','D','G'],
+        ['D','EX','H','I'],
+        ['F','F','J','K']
     ];
 
     useEffect(() => {
         const updateLines = () => {
-            // Recalculate marriage lines
-            const newLines = marriages.map(([fromId, toId]) => {
-                const from = nodesRef.current[fromId];
-                const to = nodesRef.current[toId];
-    
-                if (from && to) {
-                    const fromRect = from.getBoundingClientRect();
-                    const toRect = to.getBoundingClientRect();
-    
-                    return {
-                        x1: fromRect.right,
-                        y1: fromRect.top + fromRect.height / 2,
-                        x2: toRect.left,
-                        y2: toRect.top + toRect.height / 2
-                    };
-                }
-                return null;
-            }).filter(line => line !== null);
-    
-            // Recalculate child lines
-            const childLines = children.flatMap(([parentOne, parentTwo, ...childId]) => {
-                const parentFirst = nodesRef.current[parentOne];
-                const parentSecond = nodesRef.current[parentTwo];
-                const childOne = nodesRef.current[childId[0]];
-                const lastChild = nodesRef.current[childId[childId.length - 1]];
-    
-                if (parentFirst && parentSecond) {
-                    const oneRect = parentFirst.getBoundingClientRect();
-                    const twoRect = parentSecond.getBoundingClientRect();
-                    const childOneRect = childOne.getBoundingClientRect();
-                    const lastChildRect = lastChild.getBoundingClientRect();
+            // calculate marriage lines
+            let partnerLines = [...marriages, ...divorces];
+            const newLines = partnerLines.map(([fromId, toId]) => {
+            const from = nodesRef.current[fromId];
+            const to = nodesRef.current[toId];
 
-                    let childUpwardsLines = [];
-                    childId.forEach(element => {
-                        let childElem = nodesRef.current[element];
-                        let childRect = childElem.getBoundingClientRect();
-                        childUpwardsLines.push({
-                            x1: childRect.left + childRect.width / 2,
-                            y1: twoRect.bottom + (childOneRect.top - oneRect.bottom) / 2,
-                            x2: childRect.left + childRect.width / 2,
-                            y2: childRect.top
-                        });
+            if (from && to) {
+                const fromRect = from.getBoundingClientRect();
+                const toRect = to.getBoundingClientRect();
+
+                return {
+                    x1: fromRect.right,
+                    y1: fromRect.top + fromRect.height / 2,
+                    x2: toRect.left,
+                    y2: toRect.top + toRect.height / 2
+                };
+            }
+            return null;
+        }).filter(line => line !== null);
+
+        // add divorce lines
+        const divorceLines = divorces.map(([fromId, toId]) => {
+            const from = nodesRef.current[fromId];
+            const to = nodesRef.current[toId];
+
+            if (from && to) {
+                const fromRect = from.getBoundingClientRect();
+                const toRect = to.getBoundingClientRect();
+                
+                let mx = (fromRect.right + toRect.left) / 2;
+                let my = fromRect.top + fromRect.height / 2;
+                let p = 15;
+
+                return {
+                    x1: mx - p,
+                    y1: my + p,
+                    x2: mx + p,
+                    y2: my - p
+                };
+            }
+        }).filter(line => line !== null);
+    
+        // calculate child lines
+        const childLines = children.flatMap(([parentOne, parentTwo, ...childId]) => {
+            const parentFirst = nodesRef.current[parentOne];
+            const parentSecond = nodesRef.current[parentTwo];
+            const childOne = nodesRef.current[childId[0]];
+            const lastChild = nodesRef.current[childId[childId.length - 1]];
+
+            if (parentFirst && parentSecond) {
+                const oneRect = parentFirst.getBoundingClientRect();
+                const twoRect = parentSecond.getBoundingClientRect();
+                const childOneRect = childOne.getBoundingClientRect();
+                const lastChildRect = lastChild.getBoundingClientRect();
+
+                let childUpwardsLines = [];
+                childId.forEach(element => {
+                    let childElem = nodesRef.current[element];
+                    let childRect = childElem.getBoundingClientRect();
+                    childUpwardsLines.push({
+                        x1: childRect.left + childRect.width / 2,
+                        y1: twoRect.bottom + (childOneRect.top - oneRect.bottom) / 2,
+                        x2: childRect.left + childRect.width / 2,
+                        y2: childRect.top
                     });
-    
-                    return [...childUpwardsLines, ...[
-                        {
-                            x1: childOneRect.left + childOneRect.width / 2,
-                            y1: twoRect.bottom + (childOneRect.top - oneRect.bottom) / 2,
-                            x2: lastChildRect.left + lastChildRect.width / 2,
-                            y2: twoRect.bottom + (childOneRect.top - oneRect.bottom) / 2
-                        },
-                        {
-                            x1: oneRect.right + (twoRect.left - oneRect.right) / 2,
-                            y1: oneRect.top + oneRect.height / 2,
-                            x2: oneRect.right + (twoRect.left - oneRect.right) / 2,
-                            y2: twoRect.bottom + (childOneRect.top - oneRect.bottom) / 2
-                        },
-                    ]];
+                });
+
+                //calculation to see if horizonatal lines are outside expected
+                //bounds
+                let horizonatalX1 = childOneRect.left + childOneRect.width / 2;
+                let horizonatalX2 = lastChildRect.left + lastChildRect.width / 2;
+                let marriageX = oneRect.right + (twoRect.left - oneRect.right) / 2;
+                if (horizonatalX1 < marriageX && horizonatalX2 < marriageX) {
+                    horizonatalX2 = marriageX;
+                } else if (horizonatalX1 > marriageX && horizonatalX2 > marriageX) {
+                    horizonatalX1 = marriageX;
                 }
-                return null;
-            }).filter(line => line !== null);
-    
-            const updatedLines = [...newLines, ...childLines];
-    
-            // **Only update state if lines have changed**
-            setLines(prevLines => {
-                if (JSON.stringify(prevLines) !== JSON.stringify(updatedLines)) {
-                    return updatedLines;
+
+                //check if coming from a single parent
+                let verticalY1 = oneRect.top + oneRect.height / 2
+                if (oneRect.left === twoRect.left) {
+                    verticalY1 = oneRect.bottom;
                 }
-                return prevLines;
-            });
+
+                return [...childUpwardsLines, ...[
+                    {
+                        x1: horizonatalX1,
+                        y1: twoRect.bottom + (childOneRect.top - oneRect.bottom) / 2,
+                        x2: horizonatalX2,
+                        y2: twoRect.bottom + (childOneRect.top - oneRect.bottom) / 2
+                    },
+                    {
+                        x1: oneRect.right + (twoRect.left - oneRect.right) / 2,
+                        y1: verticalY1,
+                        x2: oneRect.right + (twoRect.left - oneRect.right) / 2,
+                        y2: twoRect.bottom + (childOneRect.top - oneRect.bottom) / 2
+                    },
+                ]];
+            }
+            return null;
+        }).filter(line => line !== null);
+    
+        const updatedLines = [...newLines, ...childLines, ...divorceLines];
+
+        // only update state if lines have changed
+        setLines(prevLines => {
+            if (JSON.stringify(prevLines) !== JSON.stringify(updatedLines)) {
+                return updatedLines;
+            }
+            return prevLines;
+        });
         };
     
-        // Initial call to update lines
+        // initial call to update lines
         updateLines();
     
-        // Attach event listener to update lines on window resize
+        // attach event listener to update lines on window resize
         window.addEventListener("resize", updateLines);
     
-        // Cleanup function to remove the event listener when component unmounts
+        // cleanup function to remove the event listener when component unmounts
         return () => window.removeEventListener("resize", updateLines);
     }, [marriages, children]);
 
 
     //dictionary of arrays of Nodes (each Node in dictionary form)
+    // const [familyTree, setFamilyTree] = useState({
+    //     0 : 
+    //     [{},{},
+    //         {person : {name : "A", gender : "male", nickname : "Man", notes : "", id : 0}, in_focus : false},
+    //          {},
+    //          {person : {name : "B", gender : "female", nickname : "Woman", notes : "", id : 1}, in_focus : false},
+    //          {},{}], 
+    //          1 : [
+    //          {person : {name : "C", gender : "male", nickname : "", notes : "", id : 2}, in_focus : false},
+    //          {},
+    //          {person : {name : "D", gender : "female", nickname : "In-Focus", notes : "An example of a really long set of notes so it's super long so I can see what happens when the notes are really long.", id : 3}, in_focus : true},
+    //          {},
+    //          {person : {name : "E", gender : "male", nickname : "", notes : "", id : 4}, in_focus : false},
+    //          {},
+    //          {person : {name : "F", gender : "male", nickname : "", notes : "", id : 5}, in_focus : false}
+    //          ], 
+    //          2 : [{},
+    //          {person : {name : "G", gender : "female", nickname : "", notes : "", id : 6}, in_focus : false},
+    //          {},{},{},{},{}
+    //          ]});
+
     const [familyTree, setFamilyTree] = useState({
         0 : 
-        [{},{},
-            {person : {name : "A", gender : "male", nickname : "Man", notes : "", id : 0}, in_focus : false},
-             {},
-             {person : {name : "B", gender : "female", nickname : "Woman", notes : "", id : 1}, in_focus : false},
-             {},{}], 
-             1 : [
-             {person : {name : "C", gender : "male", nickname : "", notes : "", id : 2}, in_focus : false},
-             {},
-             {person : {name : "D", gender : "female", nickname : "In-Focus", notes : "An example of a really long set of notes so it's super long so I can see what happens when the notes are really long.", id : 3}, in_focus : true},
-             {},
-             {person : {name : "E", gender : "male", nickname : "", notes : "", id : 4}, in_focus : false},
-             {},
-             {person : {name : "F", gender : "male", nickname : "", notes : "", id : 5}, in_focus : false}
-             ], 
-             2 : [{},
-             {person : {name : "G", gender : "female", nickname : "", notes : "", id : 6}, in_focus : false},
-             {},{},{},{},{}
-             ]});
+        [{},{},{},
+        {person : {name : "A", gender : "male", nickname : "Man", notes : "", id : 0}, in_focus : false},
+        {},
+        {person : {name : "B", gender : "female", nickname : "Woman", notes : "", id : 1}, in_focus : false},
+        {},{},{}], 
+        1 : [
+        {person : {name : "C", gender : "male", nickname : "", notes : "", id : 2}, in_focus : false},
+        {},
+        {person : {name : "D", gender : "female", nickname : "In-Focus", notes : "An example of a really long set of notes so it's super long so I can see what happens when the notes are really long.", id : 3}, in_focus : true},
+        {},
+        {person : {name : "EX", gender : "female", nickname : "evil", notes : "", id : 7}, in_focus : false},
+        {},
+        {person : {name : "E", gender : "male", nickname : "", notes : "", id : 4}, in_focus : false},
+        {},
+        {person : {name : "F", gender : "male", nickname : "", notes : "", id : 5}, in_focus : false}
+        ], 
+        2 : [
+        {},
+        {person : {name : "G", gender : "female", nickname : "", notes : "", id : 6}, in_focus : false},
+        {person : {name : "H", gender : "male", nickname : "", notes : "", id : 8}, in_focus : false},
+        {person : {name : "I", gender : "female", nickname : "", notes : "", id : 9}, in_focus : false},
+        {},{},{person : {name : "J", gender : "female", nickname : "", notes : "", id : 10}, in_focus : false},
+        {person : {name : "K", gender : "female", nickname : "", notes : "", id : 11}, in_focus : false}
+        ]});
+
     // const [familyTree, setFamilyTree] = useState({});
 
     const handleAddPersonClick = () => {
