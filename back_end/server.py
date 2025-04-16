@@ -344,14 +344,14 @@ def add_parent():
 #              status code
 #              ({"message" : "Success: child added"}, 200)
 @app.route('/api/add_child', methods = ["POST"])
-def add_parent():
+def add_child():
     data = request.get_json()
     username = data.get("username")
     tree_name = data.get("tree_name")
     child_name = data.get("child_name")
 
     if username and tree_name and child_name:
-        result = json.loads(neo_service.add_parent(username, tree_name, child_name))
+        result = json.loads(neo_service.add_child(username, tree_name, child_name))
         if result["child"] is not None:
             return jsonify({"message": "Success: child added"}), result["status_code"]
         else:
@@ -369,15 +369,15 @@ def add_parent():
 #              or not the spouse was added successfully, as well as an HTTP
 #              status code
 #              ({"message" : "Success: spouse added"}, 200)
-@app.route('/api/add_spouse', methods = ["POST"])
-def add_parent():
+@app.route('/api/add_partner', methods = ["POST"])
+def add_partner():
     data = request.get_json()
     username = data.get("username")
     tree_name = data.get("tree_name")
     spouse_name = data.get("spouse")
 
     if username and tree_name and spouse_name:
-        result = json.loads(neo_service.add_parent(username, tree_name, spouse_name))
+        result = json.loads(neo_service.add_partner(username, tree_name, spouse_name))
         if result["spouse"] is not None:
             return jsonify({"message": "Success: spouse added"}), result["status_code"]
         else:
@@ -394,13 +394,13 @@ def add_parent():
 #              status code
 #              ({"message" : "Success: spouse divorced"}, 200)
 @app.route('/api/divorce', methods = ["POST"])
-def add_parent():
+def add_divorce():
     data = request.get_json()
     username = data.get("username")
     tree_name = data.get("tree_name")
 
     if username and tree_name:
-        result = json.loads(neo_service.add_parent(username, tree_name))
+        result = json.loads(neo_service.add_divorce(username, tree_name))
         if result["ex_spouse"] is not None:
             return jsonify({"message": "Success: spouse divorced"}), result["status_code"]
         else:
@@ -408,4 +408,41 @@ def add_parent():
     else:
         return jsonify({"message": "Username and tree name required"}), 400
 
+# Purpose    : gets a correctly-formatted respresentation of a tree
+# Parameters : none (retrieves from a posted json, which should have:
+#              username (string)  - username of user whose tree it is
+#              tree_name (string) - name of tree to be modified
+#              max_height (int)   - maximum height of tree (number of total 
+#                                   generations to get)
+#              max_width (int)    - maximum width of tree (maximum number of 
+#                                   total people that can be shown per row in
+#                                   the tree)
+#              initial_focus_row  - the row (with the top row being 0) where 
+#                                   the in-focus person should be, if possible
+#               example: if someone inputs 0, they should be started at row
+#               zero, but if there is no information above them but 2 
+#               generations below them, they will be moved to row 1 assuming
+#               the max_height allows for it
+# Returns    : a tuple containing a json object with the requested tree (in
+#              the form of a dictionary of arrays where each key is a row of
+#              a tree and each array is made up of dictionaries containing a
+#              person : Person, id : string, and in_focus : boolean), as well
+#              as an HTTP status code
+#              ({"message" : "Success: spouse divorced"}, 200)
+@app.route('/api/get_tree', methods = ["GET"])
+def get_tree():
+    data = request.get_json()
+    username = data.get("username")
+    tree_name = data.get("tree_name")
+    max_height = data.get("max_height")
+    max_width = data.get("max_width")
+    initial_focus_row = data.get("intitial_focus_row")
+    
+    if max_height and max_width and initial_focus_row:
+        result = json.loads(neo_service.get_tree(username, tree_name,
+                                                 max_height, max_width, 
+                                                 initial_focus_row))
+        if result["tree"] is not None:
+            return jsonify({"tree": result["tree"]}), result["status_code"]
+        
 

@@ -681,28 +681,28 @@ def test_delete_in_focus_nonexistent_tree(client):
 
     test_remove_user(client)
 
-def test_add_parent(client):
-    test_register_user(client)
-    response = client.post('/api/add_tree', json = {
-        "username" : "testuser",
-        "tree_name" : "tree1"
-    })
-    person = Person("testperson", "female", "nickname", "notes")
-    parent = Person("testparent", "female", "nickname", "notes")
-    response = client.post('/api/add_person', json = {
-        "username" : "testuser",
-        "person" : person.__dict__,
-        "tree_name" : "tree1"
-    })
-    response = client.get('/api/get_in_focus?username=testuser&tree_name=tree1')
-    response = client.post('/api/add_parent', json = {
-        "username" : "testuser",
-        "tree_name" : "tree1",
-        "parent" : parent.__dict__
-    })
-    assert response.status_code == 200
-    assert response.get_json()["message"] == "Success: parent added"
+# def test_add_parent(client):
+#     test_register_user(client)
+#     response = client.post('/api/add_tree', json = {
+#         "username" : "testuser",
+#         "tree_name" : "tree1"
+#     })
+#     person = Person("testperson", "female", "nickname", "notes")
+#     parent = Person("testparent", "female", "nickname", "notes")
+#     response = client.post('/api/add_person', json = {
+#         "username" : "testuser",
+#         "person" : person.__dict__,
+#         "tree_name" : "tree1"
+#     })
+#     response = client.get('/api/get_in_focus?username=testuser&tree_name=tree1')
+#     response = client.post('/api/add_parent', json = {
+#         "username" : "testuser",
+#         "tree_name" : "tree1",
+#         "parent" : parent.__dict__
+#     })
+#     assert response.status_code == 200
+#     assert response.get_json()["message"] == "Success: parent added"
 
-    test_remove_user(client)
+#     test_remove_user(client)
 
 

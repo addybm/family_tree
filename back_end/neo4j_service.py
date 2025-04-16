@@ -399,6 +399,8 @@ class Neo4jService:
     #              tree_name (string) - name of tree to be modified
     #              parent (dict)      - dictionary matching the Person class
     #              definition
+    # Returns    : a json string with the parent name and an associated HTTP
+    #              status code
     def add_parent(self, username, tree_name, parent):
         query = """
         MATCH (u:User {username: $username}) -[:HAS_TREE]-> (t:Tree {name: $tree_name})
@@ -419,5 +421,149 @@ class Neo4jService:
             return json.dumps({"parent_name" : record["parent_name"] if record
                                 else None, "status_code" : 200 if record
                                 else 500})
+    
+    # TODO
+    def __format_spacing(self, tree):
+        return {}
+    
+    # parse record and call other functions
+    # TODO: write this more nicely
+    # record is a dictionary of arrays containing all of the fields we've retrieved
+    def __add_relationships(self, person, queue, tree, marriages, divorces, children, record):
+        self.__add_parents(queue, tree, children, record["parents"])
+        self.__add_partners(queue, tree, marriages, record["partners"])
+        self.__add_ex_partners(queue, tree, divorces, record["ex_partners"])
+        self.__add_children(queue, tree, children, record["children"])
+        return
+    
+    #TODO: make this better
+    # Purpose    : adds a parent to the queue and tree
+    # Parameters : queue (array of dictionaries)   - the nodes left to explore
+    #              in the current tree
+    #              tree (dictionary of arrays)     - the respresentation of the
+    #              currently-fetched tree
+    #              parents (array of dictionaries) - array of dictionaries with
+    #              the keys: name, gender, nickname, notes, and id
+    # Returns    : none (queue and tree will be modified directly)
+    def __add_parents(self, queue, tree, children, parents):
+        # parents should be added "above" their child
+        return
+    
+    def __add_partners(self, queue, tree):
+        return
+
+    def __add_ex_partners(self, queue, tree):
+        return
+
+    def __add_children(self, queue, tree):
+        return
 
 
+    # Purpose    : gets a correctly-formatted respresentation of a tree
+    # Parameters : username (string)  - username of user whose tree it is
+    #              tree_name (string) - name of tree to be modified
+    #              max_height (int)  - maximum height of tree (number of total 
+    #                                  generations to get)
+    #              max_width (int)   - maximum width of tree (maximum number of 
+    #                                  total people that can be shown per row in
+    #                                  the tree)
+    #              initial_focus_row - the row (with the top row being 0) where 
+    #                                  the in-focus person should be, if possible
+    #               example: if someone inputs 0, they should be started at row
+    #               zero, but if there is no information above them but 2 
+    #               generations below them, they will be moved to row 1 assuming
+    #               the max_height allows for it
+    # Returns    : a json string with the tree (in the form of a dictionary of 
+    #              arrays where each key is a row of a tree and each array is 
+    #              made up of dictionaries containing a person : Person, 
+    #              id : string, and in_focus : boolean) and an associated HTTP
+    #              status code
+    def get_tree(self, username, tree_name, max_height, max_width, initial_focus_row):
+
+        # - If adding missing information:
+        #    - {missing_parents, missing_partner_left, missing_partner_right, missing_children}
+
+        queue = []
+        tree = {}
+        marriages = []
+        divorces = []
+        children = []
+
+        # get in-focus node and add to the queue and tree
+        query = """
+            MATCH (u:User {username: $username}) -[:HAS_TREE]-> 
+                (t:Tree {name: $tree_name})
+            MATCH (t) -[IN_FOCUS]->(p:Person)
+            RETURN p.name AS name, p.gender AS gender, p.nickname AS nickname,
+                p.notes AS notes, ID(p) AS id
+            """
+        with self.driver.session() as session:
+            record = session.run(query, username = username,
+                                  tree_name = tree_name).single()
+            if record:
+                queue.append({"person": Person(record["name"], record["gender"],
+                                    record["nickname"], record["notes"]),
+                                    "id": record["id"], "in_focus": True})
+        
+        
+        while not len(queue) == 0:
+
+            # pop the first element from the queue (0)
+            person = queue.pop(0)
+
+            # get partners, parents, and children and add to the queue and tree
+            # if space
+            # add as missing if no space
+            
+            query = """
+                MATCH (p)
+                WHERE ID(p) = {id: $id}
+                OPTIONAL MATCH (p)-[:HAS_PARENT]->(parents:Person)
+                OPTIONAL MATCH (p)-[:PARTNER]->(partner:Person)
+                OPTIONAL MATCH (p)-[:EX_PARTNER]->(ex_partners:Person)
+                OPTIONAL MATCH (p)-[:HAS_CHILD]->(children:Person)
+                RETURN
+                COLLECT(DISTINCT {
+                    name: parents.name,
+                    gender: parents.gender,
+                    nickname: parents.nickname,
+                    notes: parents.notes,
+                    id: ID(parents)
+                }) AS parents,
+                COLLECT(DISTINCT {
+                    name: partner.name,
+                    gender: partner.gender,
+                    nickname: partner.nickname,
+                    notes: partner.notes,
+                    id: ID(partner)
+                }) AS partners,
+                COLLECT(DISTINCT {
+                    name: ex_partners.name,
+                    gender: ex_partners.gender,
+                    nickname: ex_partners.nickname,
+                    notes: ex_partners.notes,
+                    id: ID(ex_partners)
+                }) AS ex_partners,
+                COLLECT(DISTINCT {
+                    name: children.name,
+                    gender: children.gender,
+                    nickname: children.nickname,
+                    notes: children.notes,
+                    id: ID(children)
+                }) AS children
+                """
+            
+            with self.driver.session() as session:
+                record = session.run(query, username = username,
+                                    tree_name = tree_name).single()
+                if record:
+                    self.__add_relationships(person, queue, tree, marriages, divorces, children, record)
+                else:
+                    return json.dumps({"tree": {}, "status_code": 500})
+        
+        # TODO: modify tree spacing (create a function)
+        self.__format_spacing(tree)
+
+        # TODO: change status code so it reflects something real
+        return json.dumps({"tree": tree, "status_code": 200})
+    

@@ -39,17 +39,24 @@ const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) =>
         ['A', 'B'],
         ['C', 'D']
     ];
+    // const marriages = [];
 
-    const divorces = [
-        ['D', 'EX']
-    ];
+    // const divorces = [
+    //     ['D', 'EX']
+    // ];
+    const divorces = [];
 
+    // const children = [
+    //     ['A','B','D','E','F'],
+    //     ['C','D','G'],
+    //     ['D','EX','H','I'],
+    //     ['F','F','J','K']
+    // ];
     const children = [
-        ['A','B','D','E','F'],
-        ['C','D','G'],
-        ['D','EX','H','I'],
-        ['F','F','J','K']
+        ['C','D','A','H','I'],
+        ['A','B','E','F','G']
     ];
+    // const children = [];
 
     useEffect(() => {
         const updateLines = () => {
@@ -199,32 +206,49 @@ const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) =>
     //          {},{},{},{},{}
     //          ]});
 
+    // const [familyTree, setFamilyTree] = useState({
+    //     0 : 
+    //     [{},{},{},
+    //     {person : {name : "A", gender : "male", nickname : "Man", notes : "", id : 0}, in_focus : false},
+    //     {},
+    //     {person : {name : "B", gender : "female", nickname : "Woman", notes : "", id : 1}, in_focus : false},
+    //     {},{},{}], 
+    //     1 : [
+    //     {person : {name : "C", gender : "male", nickname : "", notes : "", id : 2}, in_focus : false},
+    //     {},
+    //     {person : {name : "D", gender : "female", nickname : "In-Focus", notes : "An example of a really long set of notes so it's super long so I can see what happens when the notes are really long.", id : 3}, in_focus : true},
+    //     {},
+    //     {person : {name : "EX", gender : "female", nickname : "evil", notes : "", id : 7}, in_focus : false},
+    //     {},
+    //     {person : {name : "E", gender : "male", nickname : "", notes : "", id : 4}, in_focus : false},
+    //     {},
+    //     {person : {name : "F", gender : "male", nickname : "", notes : "", id : 5}, in_focus : false}
+    //     ], 
+    //     2 : [
+    //     {},
+    //     {person : {name : "G", gender : "female", nickname : "", notes : "", id : 6}, in_focus : false},
+    //     {person : {name : "H", gender : "male", nickname : "", notes : "", id : 8}, in_focus : false},
+    //     {person : {name : "I", gender : "female", nickname : "", notes : "", id : 9}, in_focus : false},
+    //     {},{},{person : {name : "J", gender : "female", nickname : "", notes : "", id : 10}, in_focus : false},
+    //     {person : {name : "K", gender : "female", nickname : "", notes : "", id : 11}, in_focus : false}
+    //     ]});
+
     const [familyTree, setFamilyTree] = useState({
-        0 : 
-        [{},{},{},
-        {person : {name : "A", gender : "male", nickname : "Man", notes : "", id : 0}, in_focus : false},
-        {},
-        {person : {name : "B", gender : "female", nickname : "Woman", notes : "", id : 1}, in_focus : false},
-        {},{},{}], 
-        1 : [
-        {person : {name : "C", gender : "male", nickname : "", notes : "", id : 2}, in_focus : false},
-        {},
-        {person : {name : "D", gender : "female", nickname : "In-Focus", notes : "An example of a really long set of notes so it's super long so I can see what happens when the notes are really long.", id : 3}, in_focus : true},
-        {},
-        {person : {name : "EX", gender : "female", nickname : "evil", notes : "", id : 7}, in_focus : false},
-        {},
-        {person : {name : "E", gender : "male", nickname : "", notes : "", id : 4}, in_focus : false},
-        {},
-        {person : {name : "F", gender : "male", nickname : "", notes : "", id : 5}, in_focus : false}
-        ], 
-        2 : [
-        {},
-        {person : {name : "G", gender : "female", nickname : "", notes : "", id : 6}, in_focus : false},
-        {person : {name : "H", gender : "male", nickname : "", notes : "", id : 8}, in_focus : false},
-        {person : {name : "I", gender : "female", nickname : "", notes : "", id : 9}, in_focus : false},
-        {},{},{person : {name : "J", gender : "female", nickname : "", notes : "", id : 10}, in_focus : false},
-        {person : {name : "K", gender : "female", nickname : "", notes : "", id : 11}, in_focus : false}
-        ]});
+        0 : [{}, 
+            {person : {name : "C", gender : "male", nickname : "Man", notes : "", id : 0}, in_focus : false},
+            {person : {name : "D", gender : "female", nickname : "Woman", notes : "", id : 1}, in_focus : false},
+            {}],
+        1 : [{person : {name : "A", gender : "female", nickname : "In-Focus", notes : "Notes.", id : 2}, in_focus : true},
+            {person : {name : "B", gender : "male", nickname : "", notes : "", id : 3}, in_focus : false},
+            {person : {name : "H", gender : "male", nickname : "", notes : "", id : 4}, in_focus : false},
+            {person : {name : "I", gender : "male", nickname : "", notes : "", id : 5}, in_focus : false}
+        ],
+        2 : [{person : {name : "E", gender : "male", nickname : "", notes : "", id : 6}, in_focus : false},
+            {person : {name : "F", gender : "female", nickname : "", notes : "", id : 7}, in_focus : false},
+            {person : {name : "G", gender : "female", nickname : "", notes : "", id : 8}, in_focus : false},
+            {}
+        ]
+    });
 
     // const [familyTree, setFamilyTree] = useState({});
 
@@ -515,7 +539,7 @@ const TreeBuilder = ({ treeTitle, setTreeBuilder, setLoggedIn, getUsername }) =>
                 </p>
                 <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
                     {lines.map((line, index) => (
-                        <line key={index} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} 
+                        <line key = {index} x1 = {line.x1} y1 = {line.y1} x2 = {line.x2} y2 = {line.y2} 
                             stroke="black" strokeWidth="2" />
                     ))}
                 </svg>
