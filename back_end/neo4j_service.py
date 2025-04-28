@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import bcrypt
 import json
 import datetime
-from Person import Person
 
 class Neo4jService:
 
@@ -345,9 +344,11 @@ class Neo4jService:
         with self.driver.session() as session:
             record = session.run(query, username = username, tree_name = tree_name).single()
             if record["person_name"] and record["person_gender"] and record["person_nickname"] and record["person_notes"]:
-                person = Person(record["person_name"], record["person_gender"],
-                                 record["person_nickname"], record["person_notes"])
-                return json.dumps({"person" : person.__dict__, "status_code" : 200})
+                person = {"name": record["person_name"], 
+                          "gender": record["person_gender"],
+                          "nickname": record["person_nickname"],
+                          "notes": record["person_notes"]}
+                return json.dumps({"person" : person, "status_code" : 200})
             else:
                 return json.dumps({"person" : None, "status_code" : 200})
 
@@ -408,6 +409,7 @@ class Neo4jService:
         CREATE (parent:Person {name: $name, gender: $gender, nickname: $nickname, notes: $notes})
         CREATE (child)-[:HAS_PARENT]->(parent)
         CREATE (parent)-[:HAS_CHILD]->(child)
+        CREATE (t)-[:HAS_PERSON]->(parent)
         RETURN parent.name AS parent_name
         """
 
@@ -427,17 +429,17 @@ class Neo4jService:
         return {}
     
     # parse record and call other functions
-    # TODO: write this more nicely
+    # TODO: write this docstring more nicely
     # record is a dictionary of arrays containing all of the fields we've retrieved
     def __add_relationships(self, person, queue, tree, marriages, divorces, children, record):
-        self.__add_parents(queue, tree, children, record["parents"])
-        self.__add_partners(queue, tree, marriages, record["partners"])
-        self.__add_ex_partners(queue, tree, divorces, record["ex_partners"])
-        self.__add_children(queue, tree, children, record["children"])
+        self.__add_parents(person, queue, tree, children, record["parents"])
+        # self.__add_partners(person, queue, tree, marriages, record["partners"])
+        # self.__add_ex_partners(person, queue, tree, divorces, record["ex_partners"])
+        # self.__add_children(person, queue, tree, children, record["children"])
         return
     
-    #TODO: make this better
-    # Purpose    : adds a parent to the queue and tree
+    #TODO: make function contract better
+    # Purpose    : adds a parent to the relationships, queue, and tree
     # Parameters : queue (array of dictionaries)   - the nodes left to explore
     #              in the current tree
     #              tree (dictionary of arrays)     - the respresentation of the
@@ -445,9 +447,123 @@ class Neo4jService:
     #              parents (array of dictionaries) - array of dictionaries with
     #              the keys: name, gender, nickname, notes, and id
     # Returns    : none (queue and tree will be modified directly)
-    def __add_parents(self, queue, tree, children, parents):
-        # parents should be added "above" their child
+    def __add_parents(self, person, queue, tree, children, parents):
+
+        num_parents = len(parents)
+        if num_parents > 1:
+            parents = sorted(parents, key=lambda p: p["name"].lower())
+
+            parent_one = parents[0]["name"]
+            parent_two = parents[1]["name"]
+
+        elif num_parents == 1:
+            parent_one = parents[0]["name"]
+            parent_two = parents[0]["name"]
+        else:
+            return
+
+        # if these parents are already listed, skip
+        for pair in children:
+            if (pair[0] == parent_one and pair[1] == parent_two
+                ) or (pair[0] == parent_two and pair[1] == parent_one):
+                return
+            
+        # add to queue alphabetically
+        queue.append({"person": {"name" : parents[0]["name"], 
+                                 "gender" : parents[0]["gender"],
+                                   "nickname" : parents[0]["nickname"],
+                                   "notes" : parents[0]["notes"]}, 
+                      "id" : parents[0]["id"], "in-focus": False})
+        if num_parents > 1:
+            queue.append({"person": {"name" : parents[1]["name"], 
+                            "gender" : parents[1]["gender"],
+                            "nickname" : parents[1]["nickname"],
+                            "notes" : parents[1]["notes"]}, 
+                "id" : parents[1]["id"], "in-focus" : False})
+
+        # add both parents to the "children" relationships with "person" as 
+            # their child (alphabetically by first name if 2 parents)
+        children.append([parent_one, parent_two, person["person"]["name"]])
+        # TODO: think about this, "children" feels a little messy
+
+        # add both parents to the tree (alphabetically by first name, above
+            # their children)
+        
+        row_parents = None
+        idx_parents = None
+        for key, people in tree.items():
+            for index, node in enumerate(people):
+                row_parents = str(int(key) - 1)
+                if node["person"]["name"] == person["person"]["name"]:
+                    self.__add_parents_tree(tree, row_parents, idx_parents, parents)
+                    return
+                else:
+                    # move parent counters if applicable
+                    idx_parents = self.__check_parents(tree, node, children, row_parents, idx_parents)
         return
+    
+    # Purpose    : adds parents to the tree
+    # TODO: improve
+    def __add_parents_tree(self, tree, row_parents, idx_parents, parents):
+        # add the parents if in-bounds, otherwise creates new first row
+        if (row_parents == "-1"):
+            idx = max(int(k) for k in tree.keys())
+            while idx > 0:
+                if str(idx - 1) in tree:
+                    tree[str(idx)] = tree[str(idx - 1)]
+                else:
+                    tree[str(idx)] = {}
+                    tree[str(idx - 1)] = {}
+            tree["0"] = [{"person" : {"name" : parent["name"], 
+                                      "gender" : parent["gender"], 
+                                      "nickname" : parent["nickname"], 
+                                      "notes" : parent["notes"]}, 
+                                      "id" : parent["id"], 
+                                      "in-focus" : False} 
+                                      for parent in parents]
+        
+        # tree[row_parents].insert(parents[0],idx_parents)
+        if row_parents in tree:
+            tree[row_parents].insert({"person": {"name" : parents[0]["name"], 
+                                 "gender" : parents[0]["gender"],
+                                   "nickname" : parents[0]["nickname"],
+                                   "notes" : parents[0]["notes"]}, 
+                                   "id" : parents[0]["id"], 
+                                   "in-focus": False}
+                                   ,idx_parents)
+            if len(parents) > 1:
+                tree[row_parents].insert({"person": {"name" : parents[1]["name"], 
+                                 "gender" : parents[1]["gender"],
+                                   "nickname" : parents[1]["nickname"],
+                                   "notes" : parents[1]["notes"]}, 
+                                   "id" : parents[1]["id"], 
+                                   "in-focus": False}
+                                   ,idx_parents + 1)
+        else:
+            tree[row_parents] = [{"person" : {"name" : parent["name"], 
+                                      "gender" : parent["gender"], 
+                                      "nickname" : parent["nickname"], 
+                                      "notes" : parent["notes"]}, 
+                                      "id" : parent["id"], 
+                                      "in-focus" : False} 
+                                      for parent in parents]
+
+        return
+
+    # check whether someone's parents are in the tree and adjust where new
+    # parents should be placed accordingly
+    def __check_parents(self, tree, node, children, row_parents, idx_parents):
+        # are their parents listed in "children"
+        for relationship in children:
+            if node["person"]["name"] in relationship:
+                parent_one = relationship[0]
+                parent_two = relationship[1]
+                # do they match the next 1/2 people in the position [row_parents][idx_parents] (might be out of bounds)
+                if (parent_one == tree[row_parents][idx_parents]["person"]["name"]):
+                    idx_parents += 1
+                    if (parent_two == tree[row_parents][idx_parents]["person"]["name"]):
+                        idx_parents += 1
+        return idx_parents
     
     def __add_partners(self, queue, tree):
         return
@@ -495,75 +611,104 @@ class Neo4jService:
                 (t:Tree {name: $tree_name})
             MATCH (t) -[IN_FOCUS]->(p:Person)
             RETURN p.name AS name, p.gender AS gender, p.nickname AS nickname,
-                p.notes AS notes, ID(p) AS id
+                p.notes AS notes, elementId(p) AS id
             """
+        
+        # TODO: getting a warning about the following code that I'm unable to fix
         with self.driver.session() as session:
             record = session.run(query, username = username,
                                   tree_name = tree_name).single()
             if record:
-                queue.append({"person": Person(record["name"], record["gender"],
-                                    record["nickname"], record["notes"]),
-                                    "id": record["id"], "in_focus": True})
+                queue.append({"person" : {"name" : record["name"],
+                                          "gender" : record["gender"],
+                                          "nickname" : record["nickname"],
+                                          "notes" : record["notes"]},
+                                          "id": record["id"],
+                                          "in_focus": True})
+                #TODO: should this key be a string?
+                tree[initial_focus_row] = [{"person": {"name" : record["name"],
+                                          "gender" : record["gender"],
+                                          "nickname" : record["nickname"],
+                                          "notes" : record["notes"]},
+                                          "id": record["id"],
+                                          "in_focus": True}]
+            else:
+                return json.dumps({"tree": {}, "status_code": 500})
         
         
-        while not len(queue) == 0:
+            while not len(queue) == 0:
 
-            # pop the first element from the queue (0)
-            person = queue.pop(0)
+                # pop the first element from the queue (0)
+                person = queue.pop(0)
 
-            # get partners, parents, and children and add to the queue and tree
-            # if space
-            # add as missing if no space
-            
-            query = """
-                MATCH (p)
-                WHERE ID(p) = {id: $id}
-                OPTIONAL MATCH (p)-[:HAS_PARENT]->(parents:Person)
-                OPTIONAL MATCH (p)-[:PARTNER]->(partner:Person)
-                OPTIONAL MATCH (p)-[:EX_PARTNER]->(ex_partners:Person)
-                OPTIONAL MATCH (p)-[:HAS_CHILD]->(children:Person)
-                RETURN
-                COLLECT(DISTINCT {
-                    name: parents.name,
-                    gender: parents.gender,
-                    nickname: parents.nickname,
-                    notes: parents.notes,
-                    id: ID(parents)
-                }) AS parents,
-                COLLECT(DISTINCT {
-                    name: partner.name,
-                    gender: partner.gender,
-                    nickname: partner.nickname,
-                    notes: partner.notes,
-                    id: ID(partner)
-                }) AS partners,
-                COLLECT(DISTINCT {
-                    name: ex_partners.name,
-                    gender: ex_partners.gender,
-                    nickname: ex_partners.nickname,
-                    notes: ex_partners.notes,
-                    id: ID(ex_partners)
-                }) AS ex_partners,
-                COLLECT(DISTINCT {
-                    name: children.name,
-                    gender: children.gender,
-                    nickname: children.nickname,
-                    notes: children.notes,
-                    id: ID(children)
-                }) AS children
-                """
-            
-            with self.driver.session() as session:
-                record = session.run(query, username = username,
-                                    tree_name = tree_name).single()
-                if record:
-                    self.__add_relationships(person, queue, tree, marriages, divorces, children, record)
+                # get partners, parents, and children and add to the queue and tree
+                # if space
+                # add as missing if no space
+
+                query = """
+                    MATCH (p)
+                    WHERE elementId(p) = $id
+                    OPTIONAL MATCH (p)-[:HAS_PARENT]->(parents:Person)
+                    OPTIONAL MATCH (p)-[:PARTNER]->(partner:Person)
+                    OPTIONAL MATCH (p)-[:EX_PARTNER]->(ex_partners:Person)
+                    OPTIONAL MATCH (p)-[:HAS_CHILD]->(children:Person)
+                    RETURN
+                    [
+                        p IN COLLECT(parents) WHERE p IS NOT NULL |
+                        {
+                            name: p.name,
+                            gender: p.gender,
+                            nickname: p.nickname,
+                            notes: p.notes,
+                            id: elementId(p)
+                        }
+                    ] AS parents,
+                    [
+                        p IN COLLECT(partner) WHERE p IS NOT NULL |
+                        {
+                            name: p.name,
+                            gender: p.gender,
+                            nickname: p.nickname,
+                            notes: p.notes,
+                            id: elementId(p)
+                        }
+                    ] AS partners,
+                    [
+                        p IN COLLECT(ex_partners) WHERE p IS NOT NULL |
+                        {
+                            name: p.name,
+                            gender: p.gender,
+                            nickname: p.nickname,
+                            notes: p.notes,
+                            id: elementId(p)
+                        }
+                    ] AS ex_partners,
+                    [
+                        c IN COLLECT(children) WHERE c IS NOT NULL |
+                        {
+                            name: c.name,
+                            gender: c.gender,
+                            nickname: c.nickname,
+                            notes: c.notes,
+                            id: elementId(c)
+                        }
+                    ] AS children
+                    """
+                
+                # with self.driver.session() as session:
+                record_second = list(session.run(query, id = person["id"]))[0]
+                if record_second:
+                    self.__add_relationships(person, queue, tree, marriages,
+                                            divorces, children, record_second)
                 else:
                     return json.dumps({"tree": {}, "status_code": 500})
-        
+                
+
         # TODO: modify tree spacing (create a function)
         self.__format_spacing(tree)
 
         # TODO: change status code so it reflects something real
         return json.dumps({"tree": tree, "status_code": 200})
     
+
+

@@ -3,7 +3,6 @@ from flask_cors import CORS
 import atexit
 from neo4j_service import Neo4jService
 import json
-from Person import Person
 
 
 app = Flask(__name__)
@@ -321,11 +320,11 @@ def add_parent():
     data = request.get_json()
     username = data.get("username")
     tree_name = data.get("tree_name")
-    parent_name = data.get("parent_name")
+    parent = data.get("parent")
 
-    if username and tree_name and parent_name:
-        result = json.loads(neo_service.add_parent(username, tree_name, parent_name))
-        if result["parent"] is not None:
+    if username and tree_name and parent:
+        result = json.loads(neo_service.add_parent(username, tree_name, parent))
+        if result["parent_name"] is not None:
             return jsonify({"message": "Success: parent added"}), result["status_code"]
         else:
             return jsonify({"message": "Error: parent not added"}), result["status_code"]
@@ -428,21 +427,23 @@ def add_divorce():
 #              a tree and each array is made up of dictionaries containing a
 #              person : Person, id : string, and in_focus : boolean), as well
 #              as an HTTP status code
-#              ({"message" : "Success: spouse divorced"}, 200)
+#              ({"tree" : {}}, 200)
 @app.route('/api/get_tree', methods = ["GET"])
 def get_tree():
-    data = request.get_json()
-    username = data.get("username")
-    tree_name = data.get("tree_name")
-    max_height = data.get("max_height")
-    max_width = data.get("max_width")
-    initial_focus_row = data.get("intitial_focus_row")
+    username = request.args.get("username")
+    tree_name = request.args.get("tree_name")
+    max_height = request.args.get("max_height")
+    max_width = request.args.get("max_width")
+    initial_focus_row = request.args.get("initial_focus_row")
     
-    if max_height and max_width and initial_focus_row:
+    if username and tree_name and max_height and max_width and initial_focus_row:
         result = json.loads(neo_service.get_tree(username, tree_name,
                                                  max_height, max_width, 
                                                  initial_focus_row))
         if result["tree"] is not None:
             return jsonify({"tree": result["tree"]}), result["status_code"]
+        
+    else:
+        return jsonify({"tree": {}}), 500
         
 
