@@ -236,26 +236,26 @@ def add_person():
 # Parameters : none (retrieves from a posted json, which should have:
 #              username (string)  - username to be in focus
 #              tree_name (string) - name of tree to be modified
-#              person_name (string) - name of person to be in focus)
+#              id (string)        - id of person to be in focus)
 # Returns    : a tuple containing a json string with a message saying whether
 #              or not the in-focus person was modified successfully, as well as
 #              an HTTP status code
 #              ({"message" : "Success: focus changed"}, 200)
 #              ({"message" : "Error: focus not modified"}, 400)
-# @app.route('/api/modify_in_focus', methods = ["POST"])
-# def change_focus():
-#     data = request.get_json()
-#     username = data.get("username")
-#     tree_name = data.get("tree_name")
-#     person_name = data.get("person_name")
-#     if username and tree_name and person_name:
-#         result = json.loads(neo_service.set_focus(username, tree_name, person_name))
-#         if result["focus"] is not None:
-#             return jsonify({"message": "Success: focus changed"}), result["status_code"]
-#         else:
-#             return jsonify({"message": "Error: focus not modified"}), result["status_code"]
-#     else:
-#         return jsonify({"message": "Username, tree name and person name required"}), 400
+@app.route('/api/modify_in_focus', methods = ["POST"])
+def change_focus():
+    data = request.get_json()
+    username = data.get("username")
+    tree_name = data.get("tree_name")
+    id = data.get("id")
+    if username and tree_name and id:
+        result = json.loads(neo_service.set_focus(username, tree_name, id))
+        if result["focus"] is not None:
+            return jsonify({"message": "Success: focus changed", "focus": result["focus"]}), result["status_code"]
+        else:
+            return jsonify({"message": "Error: focus not modified"}), result["status_code"]
+    else:
+        return jsonify({"message": "Username, tree name and person name required"}), 400
     
 
 # Purpose    : gets the in-focus person of a tree

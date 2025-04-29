@@ -870,3 +870,61 @@ def test_get_two_parents_switch_alphabetically(client):
     # print(get_string_tree(response.get_json()["tree"]))
 
     test_remove_user(client)
+
+def test_change_focus(client):
+    test_register_user(client)
+    response = client.post('/api/add_tree', json = {
+        "username" : "testuser",
+        "tree_name" : "tree1"
+    })
+    person = {"name" : "testperson", "gender" : "female", 
+              "nickname" : "nickname", "notes" : "notes"}
+    client.post('/api/add_person', json = {
+        "username" : "testuser",
+        "person" : person,
+        "tree_name" : "tree1"
+    })
+
+    parent = {"name" : "btestparent", "gender" : "female", 
+              "nickname" : "nickname", "notes" : "notes"}
+    client.post('/api/add_parent', json = {
+        "username" : "testuser",
+        "tree_name" : "tree1",
+        "parent" : parent
+    })
+
+    # get tree so we can get the id of this parent now
+    response = client.get('/api/get_tree?username=testuser&' +
+                          'tree_name=tree1&max_height=3&max_width=7' + 
+                          '&initial_focus_row=1')
+
+    # change focus to parent
+    response_if = client.post('/api/modify_in_focus', json = {
+        "username" : "testuser",
+        "tree_name" : "tree1",
+        "id" : response.get_json()["tree"]["0"][0]["id"]
+    })
+
+    # assert things
+    assert(response_if.status_code == 200)
+    assert(response_if.get_json()["message"] == "Success: focus changed")
+
+    parent_two = {"name" : "atestparenttwo", "gender" : "male", 
+              "nickname" : "nickname", "notes" : "notes"}
+    client.post('/api/add_parent', json = {
+        "username" : "testuser",
+        "tree_name" : "tree1",
+        "parent" : parent_two
+    })
+
+    response = client.get('/api/get_tree?username=testuser&' +
+                          'tree_name=tree1&max_height=3&max_width=7' + 
+                          '&initial_focus_row=1')
+
+    assert response.status_code == 200
+    # this is expected behavior (for now) because getting children is not yet implemented
+    assert (get_string_tree(response.get_json()["tree"]) == {"0": ["atestparenttwo"], "1" : ["btestparent"]})
+    # print(get_string_tree(response.get_json()["tree"]))
+
+    test_remove_user(client)
+

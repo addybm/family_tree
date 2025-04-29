@@ -355,24 +355,27 @@ class Neo4jService:
     # Purpose    : set the focus of a tree to a specific person
     # Parameters : username (string)  - username of user whose tree it is
     #              tree_name (string) - name of the tree to be updated
-    #              person_name (string) - name of the person to be set as focus
+    #              id (string) - id of the person to be set as focus
     # Returns    : a json string with the name of the person set as focus (or None
     #              if failed) and the associated HTTP response status code
-    #              (format: {"person_name" : "John Doe", "status_code" : 200})
-    # def set_focus(self, username, tree_name, person_name):
-    #     query = """
-    #     MATCH (u:User {username: $username})-[r:HAS_TREE]->(t:Tree {name: $tree_name})
-    #     MATCH (p:Person {name: $person_name})
-    #     MERGE (t)-[:IN_FOCUS]->(p)
-    #     RETURN p.name AS person_name
-    #     """
+    #              (format: {"focus" : "John Doe", "status_code" : 200})
+    def set_focus(self, username, tree_name, id):
+        query = """
+            MATCH (u:User {username: $username})-[:HAS_TREE]->(t:Tree {name: $tree_name})
+            MATCH (t)-[oldRel:IN_FOCUS]->(f)
+            MATCH (p:Person)
+            WHERE elementId(p) = $id
+            DELETE oldRel
+            CREATE (t)-[:IN_FOCUS]->(p)
+            RETURN p.name as focus
+            """
 
-    #     with self.driver.session() as session:
-    #         record = session.run(query, username = username, tree_name = tree_name,
-    #                              person_name = person_name).single()
-    #         return json.dumps({"person_name" : record["person_name"] if record
-    #                             else None, "status_code" : 200 if record
-    #                             else 500})
+        with self.driver.session() as session:
+            record = session.run(query, username = username, tree_name = tree_name,
+                                 id = id).single()
+            return json.dumps({"focus" : record["focus"] if record
+                                else None, "status_code" : 200 if record
+                                else 500})
 
 
     # Purpose    : delete the person who is in focus
